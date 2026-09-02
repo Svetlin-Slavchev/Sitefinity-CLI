@@ -14,11 +14,21 @@ internal class LayoutMigration : IWidgetMigration
     public async Task<MigratedWidget> Migrate(WidgetMigrationContext context)
     {
         string migratedName = "SitefinitySection";
+        //string migratedName = "StaticSection";
         string migratedPlaceholder = context.Source.PlaceHolder;
         var migratedProperties = context.Source.Properties.ToDictionary(x => x.Key, x => x.Value);
         if (context.ParentId == null)
         {
             migratedPlaceholder = "Body";
+        }
+
+        string templateName = migratedProperties["OriginalCaption"];
+        bool isNumericGridTemplate = TryGetNumericParts(templateName, out List<int> templateNumbers);
+        if (!isNumericGridTemplate)
+        {
+            // use static section for all custom templates that are not numeric grid templates
+            migratedName = "StaticSection";
+            migratedProperties["TemplateName"] = $"{migratedProperties["OriginalCaption"]}";
         }
 
         await MigrateColumnProportions(context, migratedProperties);
@@ -203,6 +213,30 @@ internal class LayoutMigration : IWidgetMigration
         }
 
         migratedProperties.Add("Labels", JsonSerializer.Serialize(labels));
+    }
+
+    /// <summary>
+    /// Checks a string for numeric segments (parts separated by non-digit characters) that can be parsed to numbers.
+    /// Example: "grd_3+4" -> true (parses to [3, 4]); "test_template" -> false.
+    /// </summary>
+    private static bool TryGetNumericParts(string value, out List<int> numbers)
+    {
+        numbers = new List<int>();
+        if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        var parts = Regex.Split(value, "[^0-9]+");
+        foreach (var part in parts)
+        {
+            if (!string.IsNullOrEmpty(part) && int.TryParse(part, NumberStyles.None, CultureInfo.InvariantCulture, out int number))
+            {
+                numbers.Add(number);
+            }
+        }
+
+        return numbers.Count > 0;
     }
 
     private static Dictionary<string, string> MvcProportionsMap = new Dictionary<string, string>() {

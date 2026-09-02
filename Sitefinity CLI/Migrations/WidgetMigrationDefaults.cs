@@ -46,6 +46,15 @@ public static class WidgetMigrationDefaults
                 }
             }
         },
+        //{ "Telerik.Sitefinity.Frontend.InlineClientAssets.Mvc.Controllers.EmbedCodeController", new WidgetMigrationArgs("EmbedCode")
+        //    {
+        //        Whitelist = ["InlineCode", "Description", "CssClass" ],
+        //        Rename = new Dictionary<string, string>()
+        //        {
+        //            { "InlineCode", "Code" },
+        //        }
+        //    }
+        //},
         { "Telerik.Sitefinity.Security.Web.UI.UserChangePasswordWidget", new WidgetMigrationArgs("SitefinityChangePassword") { Whitelist = ["CssClass"] } }
     });
 
@@ -94,7 +103,8 @@ public static class WidgetMigrationDefaults
         { "Telerik.Sitefinity.Services.Search.Web.UI.Public.SearchResults", new SearchResultsWidget() },
         { "Telerik.Sitefinity.Web.UI.PublicControls.TaxonomyControl", new WebForms.TaxonomyWidget() },
         { "Telerik.Sitefinity.Localization.Web.UI.LanguageSelectorControl", new WebForms.LanguageSelectorWidget() },
-        { "Telerik.Sitefinity.Modules.Forms.Web.UI.FormsControl", new WebForms.FormWidget() }
+        { "Telerik.Sitefinity.Modules.Forms.Web.UI.FormsControl", new WebForms.FormWidget() },
+        { "Telerik.Sitefinity.Frontend.InlineClientAssets.Mvc.Controllers.EmbedCodeController", new Mvc.EmbedTest() },
     });
 
     /// <summary>

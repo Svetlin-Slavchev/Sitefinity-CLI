@@ -41,10 +41,19 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
 
         var contentType = await GetContentType(context, propsToRead);
 
+        // custom code
+        CustomRatesLogic(propsToRead, migratedProperties, contentType);
+
         if (contentType == null)
         {
             await context.LogWarning($"No property found for content type!");
             return null;
+        }
+
+        // custom List migration logic for List widget
+        if (contentType == "Telerik.Sitefinity.Lists.Model.List")
+        {
+
         }
 
         if (propsToRead.TryGetValue("UrlKeyPrefix", out string urlKeyPrefix) && !string.IsNullOrEmpty(urlKeyPrefix))
@@ -85,11 +94,69 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
         return new MigratedWidget(RendererWidgetName, migratedProperties);
     }
 
+    private static void CustomRatesLogic(Dictionary<string, string> propsToRead, IDictionary<string, string> migratedProperties, string contentType)
+    {
+        if (contentType == "Telerik.Sitefinity.DynamicTypes.Model.Rates.Rate")
+        {
+            if (propsToRead.TryGetValue("RateCustomField1", out string rateCustomField1))
+            {
+                if (!string.IsNullOrEmpty(rateCustomField1))
+                {
+                    migratedProperties["RateCustomField1"] = rateCustomField1;
+                }
+            }
+
+            if (propsToRead.TryGetValue("Column1Header", out string column1Header))
+            {
+                if (!string.IsNullOrEmpty(column1Header))
+                {
+                    migratedProperties["Column1Header"] = column1Header;
+                }
+            }
+
+            if (propsToRead.TryGetValue("Column2Header", out string column2Header))
+            {
+                if (!string.IsNullOrEmpty(column2Header))
+                {
+                    migratedProperties["Column2Header"] = column2Header;
+                }
+            }
+
+            if (propsToRead.TryGetValue("Column3Header", out string column3Header))
+            {
+                if (!string.IsNullOrEmpty(column3Header))
+                {
+                    migratedProperties["Column3Header"] = column3Header;
+                }
+            }
+
+            if (propsToRead.TryGetValue("Footnotes", out string footnotes))
+            {
+                if (!string.IsNullOrEmpty(footnotes))
+                {
+                    migratedProperties["Footnotes"] = footnotes;
+                }
+            }
+        }
+    }
+
     protected virtual async Task MigrateViews(WidgetMigrationContext context, Dictionary<string, string> propsToRead, IDictionary<string, string> migratedProperties, string contentType)
     {
-        await context.LogWarning($"Defaulting to view ListWithSummary for content type {contentType}");
-
-        migratedProperties.Add("SfViewName", "ListWithSummary");
+        // custom ...
+        if (contentType == "Telerik.Sitefinity.DynamicTypes.Model.Rates.Rate")
+        {
+            // set the right view for the content type if it is not null
+            migratedProperties.Add("SfViewName", $"List.Rates{propsToRead["ListTemplateName"]}");
+        }
+        else if (contentType == "Telerik.Sitefinity.Lists.Model.List")
+        {
+            migratedProperties.Add("SfViewName", $"List.{propsToRead["ListTemplateName"]}");
+        }
+        else
+        {
+            await context.LogWarning($"Defaulting to view ListWithSummary for content type {contentType}");
+            migratedProperties.Add("SfViewName", "ListWithSummary");
+        }
 
         var fieldMappingList = new List<FieldMapping>()
         {
@@ -413,6 +480,12 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
 
                 CreateParentFilter(propsToRead, contentType, parentFilterMode, allItemsFilter);
 
+                // set content type to ListItems if migration
+                if (contentType == "Telerik.Sitefinity.Lists.Model.List")
+                {
+                    contentType = "Telerik.Sitefinity.Lists.Model.ListItem";
+                }
+
                 var selectedItemsValue = GetMixedContentValue(allItemsFilter, contentType, contentProvider, parentFilterMode == "CurrentlyOpen");
                 migratedProperties.Add("SelectedItems", selectedItemsValue);
 
@@ -449,7 +522,7 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
     private static void CreateParentFilter(Dictionary<string, string> propsToRead, string contentType, string parentFilterMode, CombinedFilter allItemsFilter)
     {
         string selectedListIdsJson = null;
-        if ((contentType == RestClientContentTypes.ListItems && propsToRead.TryGetValue("SerializedSelectedItemsIds", out selectedListIdsJson))
+        if ((contentType == RestClientContentTypes.Lists && propsToRead.TryGetValue("SerializedSelectedItemsIds", out selectedListIdsJson))
             || (propsToRead.TryGetValue("SerializedSelectedParentsIds", out selectedListIdsJson) && parentFilterMode == "Selected"))
         {
             var deserialized = JsonSerializer.Deserialize<string[]>(selectedListIdsJson);

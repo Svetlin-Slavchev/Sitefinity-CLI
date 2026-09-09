@@ -41,7 +41,11 @@ internal class LayoutMigration : IWidgetMigration
             {
                 if (child.PlaceHolder == "Container")
                 {
-                    child.PlaceHolder = "Column1";
+                    //child.PlaceHolder = "Column1";
+
+                    // custom
+                    migratedName = "StaticSection";
+                    migratedProperties["CssClass"] = $"{context.Source.Properties["Container_Css"]}";
                 }
 
                 if (child.PlaceHolder.Contains("_Col", StringComparison.Ordinal))

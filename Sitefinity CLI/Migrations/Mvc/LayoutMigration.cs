@@ -1,4 +1,4 @@
-﻿using Progress.Sitefinity.MigrationTool.Core.Widgets;
+using Progress.Sitefinity.MigrationTool.Core.Widgets;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -229,6 +229,12 @@ internal class LayoutMigration : IWidgetMigration
     {
         numbers = new List<int>();
         if (string.IsNullOrEmpty(value))
+        {
+            return false;
+        }
+
+        // Exclude specific custom template from being parsed as a numeric grid
+        if (string.Equals(value, "ornl_3_img_block", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

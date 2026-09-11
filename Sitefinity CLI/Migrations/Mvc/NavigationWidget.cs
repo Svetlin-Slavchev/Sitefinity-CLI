@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -78,7 +78,7 @@ internal class NavigationWidget : MigrationBase, IWidgetMigration
         string mappedView = null;
         if (context.Source.Properties.TryGetValue("TemplateName", out string viewName))
         {
-            var knownTemplatesNames = context.Framework == Core.RendererFramework.NetCore? new string[] { "Horizontal", "Tabs", "Vertical", "ornl_main" } : new string[] { "Horizontal", "Tabs", "Vertical", "Accordion", "ornl_main" };
+            var knownTemplatesNames = context.Framework == Core.RendererFramework.NetCore? new string[] { "Horizontal", "Tabs", "Vertical", "ornl_main", "hamburger", "Sitemap" } : new string[] { "Horizontal", "Tabs", "Vertical", "Accordion", "ornl_main" };
             if (knownTemplatesNames.Contains(viewName))
             {
                 mappedView = viewName;

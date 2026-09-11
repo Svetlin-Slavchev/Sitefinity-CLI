@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -9,11 +9,23 @@ namespace Progress.Sitefinity.MigrationTool.ConsoleApp.Migrations.Mvc;
 internal class SearchResultsWidget : MigrationBase, IWidgetMigration
 {
     private static readonly string[] propertiesToCopy = ["CssClass", "SearchFields", "HighlightedFields"];
+    private static readonly IDictionary<string, string> propertiesToRename = new Dictionary<string, string>()
+    {
+        { "TemplateName", "SfViewName" }
+    };
 
     public Task<MigratedWidget> Migrate(WidgetMigrationContext context)
     {
         var propsToRead = context.Source.Properties.ToDictionary(x => x.Key.Replace("Model-", string.Empty, StringComparison.InvariantCultureIgnoreCase), x => x.Value);
-        var migratedProperties = ProcessProperties(propsToRead, propertiesToCopy, null);
+        var migratedProperties = ProcessProperties(propsToRead, propertiesToCopy, propertiesToRename);
+
+        if (migratedProperties.TryGetValue("SfViewName", out string viewName))
+        {
+            if (viewName.Equals("SearchResults.Ornl", StringComparison.OrdinalIgnoreCase))
+            {
+                migratedProperties["SfViewName"] = "Ornl";
+            }
+        }
 
         propsToRead.TryGetValue("DisplayMode", out string displayModeParsed);
         propsToRead.TryGetValue("ItemsPerPage", out string itemsPerPageParsed);

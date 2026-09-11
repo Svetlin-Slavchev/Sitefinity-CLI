@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -14,13 +14,22 @@ internal class SearchBoxWidget : MigrationBase, IWidgetMigration
     {
         { "IndexCatalogue", "SearchIndex" },
         { "BackgroundHint", "SearchBoxPlaceholder" },
-        { "ScoringProfiles-ScoringProfile", "ScoringProfile" }
+        { "ScoringProfiles-ScoringProfile", "ScoringProfile" },
+        { "TemplateName", "SfViewName" }
     };
 
     public async Task<MigratedWidget> Migrate(WidgetMigrationContext context)
     {
         var propsToRead = context.Source.Properties.ToDictionary(x => x.Key.Replace("Model-", string.Empty, StringComparison.InvariantCultureIgnoreCase), x => x.Value);
         var migratedProperties = ProcessProperties(propsToRead, propertiesToCopy, propertiesToRename);
+
+        if (migratedProperties.TryGetValue("SfViewName", out string viewName))
+        {
+            if (viewName.Equals("Searchbox.header", StringComparison.OrdinalIgnoreCase))
+            {
+                migratedProperties["SfViewName"] = "header";
+            }
+        }
 
         if (propsToRead.TryGetValue("ResultsPageId", out string resultsPageId) && Guid.TryParse(resultsPageId, out _))
         {

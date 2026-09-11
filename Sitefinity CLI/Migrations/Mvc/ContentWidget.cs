@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Linq;
 using Progress.Sitefinity.MigrationTool.ConsoleApp.Migrations.Common;
 using Progress.Sitefinity.MigrationTool.Core.Widgets;
 using Progress.Sitefinity.RestSdk;
@@ -142,7 +142,15 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
 
     protected virtual async Task MigrateViews(WidgetMigrationContext context, Dictionary<string, string> propsToRead, IDictionary<string, string> migratedProperties, string contentType)
     {
-        // custom ...
+        if (propsToRead.TryGetValue("ListTemplateName", out string listTemplate) && (listTemplate.Equals("ServiceSlider", StringComparison.OrdinalIgnoreCase)))
+        {
+            migratedProperties.Add("SfViewName", "List.ServiceSlider");
+        }
+        else if (listTemplate.Equals("WelcomeSlider", StringComparison.OrdinalIgnoreCase))
+        {
+            migratedProperties.Add("SfViewName", "List.WelcomeSlider");
+        }
+
         if (contentType == "Telerik.Sitefinity.DynamicTypes.Model.Rates.Rate")
         {
             // set the right view for the content type if it is not null
@@ -151,6 +159,15 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
         else if (contentType == "Telerik.Sitefinity.Lists.Model.List")
         {
             migratedProperties.Add("SfViewName", $"List.{propsToRead["ListTemplateName"]}");
+        }
+        else if (contentType == RestClientContentTypes.BlogPost &&
+            !string.IsNullOrEmpty(listTemplate) &&
+            (listTemplate.Equals("GridList", StringComparison.OrdinalIgnoreCase) ||
+             listTemplate.Equals("Featured", StringComparison.OrdinalIgnoreCase) ||
+             listTemplate.Equals("ListSlider", StringComparison.OrdinalIgnoreCase) ||
+             listTemplate.Equals("CategoryList", StringComparison.OrdinalIgnoreCase)))
+        {
+            migratedProperties.Add("SfViewName", $"List.BlogPost.{listTemplate}");
         }
         else
         {
@@ -168,23 +185,45 @@ internal class ContentWidget : MigrationBase, IWidgetMigration
         migratedProperties.Add("ListFieldMapping", JsonSerializer.Serialize(fieldMappingList));
 
         string migratedDetailsViewName = null;
-        switch (contentType)
+        if (propsToRead.TryGetValue("DetailTemplateName", out string detailTemplate) && 
+            (detailTemplate.Equals("Location_Full_Page2", StringComparison.OrdinalIgnoreCase)))
         {
-            case RestClientContentTypes.News:
-                migratedDetailsViewName = "Details.News.Default";
-                break;
-            case RestClientContentTypes.BlogPost:
-                migratedDetailsViewName = "Details.BlogPosts.Default";
-                break;
-            case RestClientContentTypes.Events:
-                migratedDetailsViewName = "Details.Events.Default";
-                break;
-            case RestClientContentTypes.ListItems:
-                migratedDetailsViewName = "Details.ListItems.Default";
-                break;
-            default:
-                migratedDetailsViewName = "Details.Dynamic.Default";
-                break;
+            migratedDetailsViewName = "Details.Location_Full_Page2";
+        }
+        
+        if (contentType == RestClientContentTypes.BlogPost &&
+            !string.IsNullOrEmpty(detailTemplate) &&
+            (detailTemplate.Equals("OrnlDetail", StringComparison.OrdinalIgnoreCase) ||
+             detailTemplate.Equals("FeaturedSingle", StringComparison.OrdinalIgnoreCase)))
+        {
+            migratedDetailsViewName = $"Details.BlogPost.{detailTemplate}";
+        }
+        else if (contentType == RestClientContentTypes.News &&
+            !string.IsNullOrEmpty(detailTemplate) &&
+            detailTemplate.Equals("OrnlDetail", StringComparison.OrdinalIgnoreCase))
+        {
+            migratedDetailsViewName = "Details.News.OrnlDetail";
+        }
+        else
+        {
+            switch (contentType)
+            {
+                case RestClientContentTypes.News:
+                    migratedDetailsViewName = "Details.News.Default";
+                    break;
+                case RestClientContentTypes.BlogPost:
+                    migratedDetailsViewName = "Details.BlogPosts.Default";
+                    break;
+                case RestClientContentTypes.Events:
+                    migratedDetailsViewName = "Details.Events.Default";
+                    break;
+                case RestClientContentTypes.ListItems:
+                    migratedDetailsViewName = "Details.ListItems.Default";
+                    break;
+                default:
+                    migratedDetailsViewName = "Details.Dynamic.Default";
+                    break;
+            }
         }
 
         migratedProperties.Add("SfDetailViewName", migratedDetailsViewName);
